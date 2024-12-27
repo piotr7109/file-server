@@ -5,7 +5,7 @@ const { randomUUID } = require("crypto");
 const MAX_SIZE = 1000;
 
 const imageUploadHandler = asyncHandler(async (req, res) => {
-  const { prefix } = req.body;
+  const { prefix } = req.query;
   const image = req.files.file;
 
   const imageBuffer = image.data.buffer;

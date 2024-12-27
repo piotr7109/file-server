@@ -9,9 +9,11 @@ const { imageUploadHandler } = require("./imageUpload");
 const { unlink } = require("fs/promises");
 const compression = require("compression");
 const { default: helmet } = require("helmet");
+const cors = require("cors");
 
 dotenv.config();
 
+app.use(cors());
 app.use(compression());
 app.use(helmet());
 
@@ -19,7 +21,8 @@ app.use(helmet());
 app.use(fileUpload());
 
 // Serve static files from the 'uploads' directory
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/", express.static(path.join(__dirname, "uploads")));
+app.use("/mail", express.static(path.join(__dirname, "mail")));
 
 const validateToken = asyncHandler((req, res, next) => {
   if (!process.env.TOKEN || req.query.token !== process.env.TOKEN) {
