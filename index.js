@@ -1,0 +1,68 @@
+const express = require("express");
+const fileUpload = require("express-fileupload");
+const path = require("path");
+const app = express();
+const dotenv = require("dotenv");
+
+const asyncHandler = require("express-async-handler");
+const { imageUploadHandler } = require("./imageUpload");
+const { unlink } = require("fs/promises");
+const compression = require("compression");
+const { default: helmet } = require("helmet");
+
+dotenv.config();
+
+app.use(compression());
+app.use(helmet());
+
+// Middleware to handle file uploads
+app.use(fileUpload());
+
+// Serve static files from the 'uploads' directory
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+const validateToken = asyncHandler((req, res, next) => {
+  if (!process.env.TOKEN || req.query.token !== process.env.TOKEN) {
+    return res.sendStatus(403);
+  }
+
+  next();
+});
+
+const validateUpload = asyncHandler(validateToken, (req, res, next) => {
+  if (!req.files || Object.keys(req.files).length === 0) {
+    return res.status(400).send("No files were uploaded.");
+  }
+
+  next();
+});
+
+app.post("/image", validateUpload, imageUploadHandler);
+
+app.delete("/", validateToken, async (req, res) => {
+  try {
+    await unlink("uploads/" + req.query.id);
+    res.sendStatus(200);
+  } catch (e) {
+    res.sendStatus(404);
+  }
+});
+
+app.post("/", validateUpload, (req, res) => {
+  const uploadedFile = req.files.file;
+  const uploadPath = path.join(__dirname, "uploads", uploadedFile.name);
+
+  uploadedFile.mv(uploadPath, (err) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+
+    res.send({ filename: uploadedFile.name });
+  });
+});
+
+// Start server
+const PORT = process.env.PORT || 3500;
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
