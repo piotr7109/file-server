@@ -15,7 +15,11 @@ dotenv.config();
 
 app.use(cors());
 app.use(compression());
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
 
 // Middleware to handle file uploads
 app.use(fileUpload());
