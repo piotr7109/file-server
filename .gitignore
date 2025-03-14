@@ -8,6 +8,5 @@ lerna-debug.log*
 tmp
 
 .env
-uploads
 mail
 node_modules
