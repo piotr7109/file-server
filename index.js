@@ -25,7 +25,7 @@ app.use(
 app.use(fileUpload());
 
 // Serve static files from the 'uploads' directory
-app.use("/", express.static(path.join(__dirname, "uploads")));
+// app.use("/", express.static(path.join(__dirname, "uploads")));
 app.use("/mail", express.static(path.join(__dirname, "mail")));
 
 const validateToken = asyncHandler((req, res, next) => {
@@ -44,28 +44,19 @@ const validateUpload = asyncHandler(validateToken, (req, res, next) => {
   next();
 });
 
+app.get("/:imageId", (req, res) => {
+  res.send(`${process.env.BUNNY_BUCKET}/${req.params.imageId}`);
+});
+
 app.post("/image", validateUpload, imageUploadHandler);
 
 app.delete("/", validateToken, async (req, res) => {
-  try {
-    await unlink("uploads/" + req.query.id);
-    res.sendStatus(200);
-  } catch (e) {
-    res.sendStatus(404);
-  }
-});
-
-app.post("/", validateUpload, (req, res) => {
-  const uploadedFile = req.files.file;
-  const uploadPath = path.join(__dirname, "uploads", uploadedFile.name);
-
-  uploadedFile.mv(uploadPath, (err) => {
-    if (err) {
-      return res.status(500).send(err);
-    }
-
-    res.send({ filename: uploadedFile.name });
-  });
+  // try {
+  //   await unlink("uploads/" + req.query.id);
+  //   res.sendStatus(200);
+  // } catch (e) {
+  //   res.sendStatus(404);
+  // }
 });
 
 // Start server
