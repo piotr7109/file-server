@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "axios": "^1.8.3",
     "b": "^2.0.1",
     "basic-ftp": "^5.0.5",
     "compression": "^1.7.5",

@@ -1,10 +1,33 @@
 const asyncHandler = require("express-async-handler");
 const sharp = require("sharp");
 const { randomUUID } = require("crypto");
-const { Client } = require("basic-ftp");
-const { Readable } = require("stream");
+const { default: axios } = require("axios");
 
 const MAX_SIZE = 1000;
+const PREVIEW_SIZE = 500;
+
+const uploadFile = async (imageSharp, imageName, size) => {
+  const { width = 0, height = 0 } = await imageSharp.metadata();
+  const file = await imageSharp
+    .resize({
+      fit: sharp.fit.contain,
+      width: width > height ? Math.min(size, width) : undefined,
+      height: width <= height ? Math.min(size, height) : undefined,
+    })
+    .jpeg()
+    .toBuffer();
+
+  try {
+    await axios.put(`${process.env.BUNNY_ZONE_URL}/${imageName}`, file, {
+      headers: {
+        AccessKey: process.env.BUNNY_ACCESS_KEY,
+        "Content-Type": "application/octet-stream",
+      },
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
 
 const imageUploadHandler = asyncHandler(async (req, res) => {
   const { prefix } = req.query;
@@ -12,35 +35,15 @@ const imageUploadHandler = asyncHandler(async (req, res) => {
 
   const imageBuffer = image.data.buffer;
   const imageSharp = sharp(imageBuffer);
-  const { width = 0, height = 0 } = await imageSharp.metadata();
 
-  const imageName = `${prefix ? `${prefix}-` : ""}${randomUUID()}.jpg`;
-  const imagePathname = `uploads/${imageName}`;
+  const baseImageName = `${prefix ? `${prefix}-` : ""}${randomUUID()}`;
+  const imageName = `${baseImageName}.jpg`;
+  const imageNamePreview = `${baseImageName}_preview.jpg`;
 
-  const file = await imageSharp
-    .resize({
-      fit: sharp.fit.contain,
-      width: width > height ? Math.min(MAX_SIZE, width) : undefined,
-      height: width <= height ? Math.min(MAX_SIZE, height) : undefined,
-    })
-    .jpeg()
-    .toBuffer();
-  const client = new Client();
-  client.ftp.verbose = true;
-
-  try {
-    await client.access({
-      host: process.env.BUNNY_HOST,
-      user: process.env.BUNNY_USER,
-      password: process.env.BUNNY_PASSWORD,
-      secure: true,
-    });
-    console.log(await client.list());
-    await client.uploadFrom(Readable.from(file), imageName);
-  } catch (err) {
-    console.log(err);
-  }
-  client.close();
+  await Promise.all([
+    uploadFile(imageSharp, imageName, MAX_SIZE),
+    uploadFile(imageSharp, imageNamePreview, PREVIEW_SIZE),
+  ]);
 
   res.send({ filename: imageName });
 });

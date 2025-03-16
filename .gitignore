@@ -10,3 +10,4 @@ tmp
 .env
 mail
 node_modules
+uploads
