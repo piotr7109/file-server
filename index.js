@@ -9,7 +9,7 @@ const { imageUploadHandler } = require("./imageUpload");
 const compression = require("compression");
 const { default: helmet } = require("helmet");
 const cors = require("cors");
-const { uploadFileHandler } = require("./fileUpload");
+const { uploadBackupHandler } = require("./backupsUpload");
 
 dotenv.config();
 
@@ -49,7 +49,7 @@ app.get("/:imageId", (req, res) => {
 });
 
 app.post("/image", validateUpload, imageUploadHandler);
-app.post("/file", validateUpload, uploadFileHandler);
+app.post("/backup", validateUpload, uploadBackupHandler);
 
 app.delete("/", validateToken, async (req, res) => {
   // try {
