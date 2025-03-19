@@ -6,10 +6,10 @@ const dotenv = require("dotenv");
 
 const asyncHandler = require("express-async-handler");
 const { imageUploadHandler } = require("./imageUpload");
-const { unlink } = require("fs/promises");
 const compression = require("compression");
 const { default: helmet } = require("helmet");
 const cors = require("cors");
+const { uploadFileHandler } = require("./fileUpload");
 
 dotenv.config();
 
@@ -49,6 +49,7 @@ app.get("/:imageId", (req, res) => {
 });
 
 app.post("/image", validateUpload, imageUploadHandler);
+app.post("/file", validateUpload, uploadFileHandler);
 
 app.delete("/", validateToken, async (req, res) => {
   // try {
