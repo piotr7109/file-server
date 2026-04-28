@@ -10,6 +10,7 @@ const compression = require("compression");
 const { default: helmet } = require("helmet");
 const cors = require("cors");
 const { uploadBackupHandler } = require("./backupsUpload");
+const { uploadFileHandler } = require("./fileUpload");
 
 dotenv.config();
 
@@ -50,6 +51,7 @@ app.get("/:imageId", (req, res) => {
 
 app.post("/image", validateUpload, imageUploadHandler);
 app.post("/backup", validateUpload, uploadBackupHandler);
+app.post("/file", validateUpload, uploadFileHandler);
 
 app.delete("/", validateToken, async (req, res) => {
   // try {
